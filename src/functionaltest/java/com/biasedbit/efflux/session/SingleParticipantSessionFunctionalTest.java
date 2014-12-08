@@ -169,11 +169,11 @@ public class SingleParticipantSessionFunctionalTest {
         this.session2 = new SingleParticipantSession("Session2", 8, local2, remote2) {
             @Override
             public boolean sendDataPacket(DataPacket packet) {
-                if (!this.running.get()) {
-                    return false;
-                }
+                if (!this.running.get()) return false;
 
-                packet.setPayloadType(this.payloadType);
+                // FIXME: Replaced this.payloadType by this.payloadTypes.at(0).iterator().next()
+                //        but it's probably not right
+                packet.setPayloadType(this.payloadTypes.iterator().next());
                 // explicitly commented this one out to allow SSRC override!
                 //packet.setSsrc(this.localParticipant.getSsrc());
                 packet.setSequenceNumber(this.sequence.incrementAndGet());

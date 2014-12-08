@@ -194,7 +194,7 @@ public class DataPacket {
 
         // Write RTP data
         if (packet.data != null) {
-            buffer.writeBytes(packet.data.array());
+            buffer.writeBytes(packet.data, packet.data.readerIndex(), packet.data.readableBytes());
         }
 
         if (padding > 0) {

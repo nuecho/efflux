@@ -1,0 +1,77 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group = 'com.nuecho.efflux'
+version = '0.4.0-SNAPSHOT'
+
+description = "efflux"
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+// Dependencies
+
+repositories {
+    maven { url "http://repository.jboss.org/nexus/content/groups/public/" }
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    compile group: 'org.jboss.netty', name: 'netty', version:'3.2.2.Final'
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.6.1'
+    runtime group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.6.1'
+    runtime group: 'log4j', name: 'log4j', version:'1.2.16'
+    testCompile group: 'junit', name: 'junit', version:'4.7'
+}
+
+// Source Sets
+
+sourceSets {
+    functionalTest {
+        java.setSrcDirs([file('src/functionaltest/java')])
+        resources.setSrcDirs([file('src/functionaltest/resources')])
+
+        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+        runtimeClasspath = output + compileClasspath
+    }
+}
+
+// Tests
+
+test {
+    reports.html.destination = file("${reports.html.destination}/unit")
+    reports.junitXml.destination = file("${reports.junitXml.destination}/unit")
+}
+
+task('testFunctional', type: Test) {
+    description 'Runs the functional tests.'
+    group = JavaBasePlugin.VERIFICATION_GROUP
+
+    testClassesDir = sourceSets.functionalTest.output.classesDir
+    classpath = sourceSets.functionalTest.runtimeClasspath
+
+    reports.html.destination = file("${reports.html.destination}/functional")
+    reports.junitXml.destination = file("${reports.junitXml.destination}/functional")
+}
+
+// Publishing
+
+task sourcesJar(type: Jar) { from sourceSets.main.allJava }
+
+publishing {
+    repositories {
+        mavenLocal()
+        maven {
+            name 'production'
+            url 'http://knox.s.nuecho.com/artifactory/libs-release-local'
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar { classifier "sources" }
+        }
+    }
+}

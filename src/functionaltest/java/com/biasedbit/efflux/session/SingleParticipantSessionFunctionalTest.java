@@ -16,17 +16,18 @@
 
 package com.biasedbit.efflux.session;
 
+import static org.junit.Assert.*;
+
 import com.biasedbit.efflux.packet.DataPacket;
 import com.biasedbit.efflux.participant.RtpParticipant;
 import com.biasedbit.efflux.participant.RtpParticipantInfo;
+
 import org.junit.After;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.*;
 
 /**
  * @author <a href="http://bruno.biasedbit.com/">Bruno de Carvalho</a>
@@ -173,7 +174,7 @@ public class SingleParticipantSessionFunctionalTest {
                     return false;
                 }
 
-                packet.setPayloadType(this.payloadType);
+                packet.setPayloadType(this.payloadTypes.iterator().next());
                 // explicitly commented this one out to allow SSRC override!
                 //packet.setSsrc(this.localParticipant.getSsrc());
                 packet.setSequenceNumber(this.sequence.incrementAndGet());

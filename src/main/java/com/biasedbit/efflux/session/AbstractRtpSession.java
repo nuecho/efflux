@@ -509,6 +509,8 @@ public abstract class AbstractRtpSession implements RtpSession, TimerTask {
         }
 
         for (ControlPacket controlPacket : packet.getControlPackets()) {
+            if (controlPacket == null) continue;
+
             switch (controlPacket.getType()) {
                 case SENDER_REPORT:
                 case RECEIVER_REPORT:

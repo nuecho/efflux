@@ -16,15 +16,16 @@
 
 package com.biasedbit.efflux.packet;
 
+import static org.junit.Assert.*;
+
 import com.biasedbit.efflux.util.ByteUtils;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author <a:mailto="bruno.carvalho@wit-software.com" />Bruno de Carvalho</a>
@@ -57,7 +58,29 @@ public class ControlPacketTest {
         assertEquals(ControlPacket.Type.SENDER_REPORT, controlPackets.get(0).getType());
         assertEquals(ControlPacket.Type.SOURCE_DESCRIPTION, controlPackets.get(1).getType());
         assertEquals(ControlPacket.Type.BYE, controlPackets.get(2).getType());
+    }
 
-        // No more tests needed as there is plenty of unit testing for each of those packets individually.
+    @Test
+    public void testDecodeCompoundPacket2() throws Exception {
+        // wireshark capture, 2 packets (SR, SDES), malformed, from SBC
+        byte[] firstPacketBytes = ByteUtils
+                .convertHexStringToByteArray("81c8000c5e2ab89c03487442d38db9719823c0b8000001be00010c645eedc03d0000000" +
+                                             "0000000050503ae070000000000000000");
+        byte[] secondPacketBytes = ByteUtils
+                .convertHexStringToByteArray("81ca00075e2ab89c011135353035384031302e39322e32312e36380000000000");
+
+        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(firstPacketBytes, secondPacketBytes);
+
+        List<ControlPacket> controlPackets = new ArrayList<ControlPacket>(3);
+        while (buffer.readableBytes() > 0) {
+            controlPackets.add(ControlPacket.decode(buffer));
+        }
+
+        assertEquals(0, buffer.readableBytes());
+        assertEquals(3, controlPackets.size());
+
+        assertEquals(ControlPacket.Type.SENDER_REPORT, controlPackets.get(0).getType());
+        assertEquals(ControlPacket.Type.SOURCE_DESCRIPTION, controlPackets.get(1).getType());
+        assertEquals(null, controlPackets.get(2));
     }
 }

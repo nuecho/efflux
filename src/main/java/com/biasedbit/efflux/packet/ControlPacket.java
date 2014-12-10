@@ -18,10 +18,14 @@ package com.biasedbit.efflux.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
+import com.biasedbit.efflux.logging.Logger;
+
 /**
  * @author <a href="http://bruno.biasedbit.com/">Bruno de Carvalho</a>
  */
 public abstract class ControlPacket {
+
+    protected static final Logger LOG = Logger.getLogger(ControlPacket.class);
 
     // internal vars --------------------------------------------------------------------------------------------------
 
@@ -38,15 +42,22 @@ public abstract class ControlPacket {
     // public methods -------------------------------------------------------------------------------------------------
 
     public static ControlPacket decode(ChannelBuffer buffer) {
-        if ((buffer.readableBytes() % 4) > 0) {
-            throw new IllegalArgumentException("Invalid RTCP packet length: expecting multiple of 4 and got " +
-                                               buffer.readableBytes());
-        }
-        byte b = buffer.readByte();
-        RtpVersion version = RtpVersion.fromByte(b);
-        if (!version.equals(RtpVersion.V2)) {
+        if ((buffer.readableBytes() % 4) != 0) {
+            LOG.debug("Invalid RTCP packet length: expecting multiple of 4 but got {} bytes, skipping.", buffer.readableBytes());
+
+            buffer.skipBytes(buffer.readableBytes());
             return null;
         }
+
+        byte b = buffer.readByte();
+        RtpVersion version = RtpVersion.fromByte(b);
+        if (!RtpVersion.V2.equals(version)) {
+            LOG.debug("Invalid RTP version: expecting V2 but got {} from byte {}, skipping.", version, b);
+
+            buffer.skipBytes(buffer.readableBytes());
+            return null;
+        }
+
         boolean hasPadding = (b & 0x20) > 0; // mask 0010 0000
         byte innerBlocks = (byte) (b & 0x1f); // mask 0001 1111
 
@@ -60,7 +71,7 @@ public abstract class ControlPacket {
 
         // No need to pass version downwards, only V2 is supported so subclasses can safely assume V2.
         // I know it's ugly when the superclass knows about the subclasses but since this method is static (and NEEDS
-        // to be) the alternative was having this method in a external class. Pointless. 
+        // to be) the alternative was having this method in a external class. Pointless.
         switch (type) {
             case SENDER_REPORT:
                 return SenderReportPacket.decode(buffer, hasPadding, innerBlocks, length);
@@ -73,7 +84,8 @@ public abstract class ControlPacket {
             case APP_DATA:
                 return null;
             default:
-                throw new IllegalArgumentException("Unknown RTCP packet type: " + type);
+                LOG.debug("Unknown RTCP packet type: {}, dropping", type);
+                return null;
         }
     }
 

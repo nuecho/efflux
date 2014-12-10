@@ -39,7 +39,7 @@ public enum RtpVersion {
 
     // public static methods ------------------------------------------------------------------------------------------
 
-    public static RtpVersion fromByte(byte b) throws IllegalArgumentException {
+    public static RtpVersion fromByte(byte b) {
         byte tmp = (byte) (b & 0xc0);
         // Starts from version 2, which is the most common.
         for (RtpVersion version : values()) {
@@ -48,7 +48,7 @@ public enum RtpVersion {
             }
         }
 
-        throw new IllegalArgumentException("Unknown version for byte: " + b);
+        return null;
     }
 
     // getters & setters ----------------------------------------------------------------------------------------------

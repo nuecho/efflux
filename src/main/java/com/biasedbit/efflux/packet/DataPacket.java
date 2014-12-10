@@ -85,6 +85,10 @@ public class DataPacket {
         DataPacket packet = new DataPacket();
         byte b = buffer.readByte();
         packet.version = RtpVersion.fromByte(b);
+        if (packet.version == null) {
+            throw new IllegalArgumentException("Unknown version for byte: " + b);
+        }
+
         boolean padding = (b & 0x20) > 0; // mask 0010 0000
         boolean extension = (b & 0x10) > 0; // mask 0001 0000
         int contributingSourcesCount = b & 0x0f; // mask 0000 1111
